@@ -1,0 +1,9 @@
+menu "USB Wifi"
+
+source "skull/rtl8188eus/Kconfig"
+
+source "skull/rtl8188su/Kconfig"
+
+source "skull/rtl8812au/Kconfig"
+
+endmenu
