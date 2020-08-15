@@ -2459,19 +2459,25 @@ static int rtw_wx_get_essid(struct net_device *dev,
 	struct	mlme_priv	*pmlmepriv = &(padapter->mlmepriv);
 	WLAN_BSSID_EX  *pcur_bss = &pmlmepriv->cur_network.network;
 
+
+
 	if ((check_fwstate(pmlmepriv, _FW_LINKED) == _TRUE) ||
 	    (check_fwstate(pmlmepriv, WIFI_ADHOC_MASTER_STATE) == _TRUE)) {
 		len = pcur_bss->Ssid.SsidLength;
+
+		wrqu->essid.length = len;
+
+		_rtw_memcpy(extra, pcur_bss->Ssid.Ssid, len);
+
+		wrqu->essid.flags = 1;
 	} else {
-		len = 0;
+		ret = -1;
+		goto exit;
 	}
-	wrqu->essid.length = len;
-
-	memcpy(extra, pcur_bss->Ssid.Ssid, len);
-
-	wrqu->essid.flags = 1;
 
 exit:
+
+
 	return ret;
 
 }
@@ -6861,17 +6867,21 @@ static int wpa_supplicant_ioctl(struct net_device *dev, struct iw_point *p)
 
 	/* down(&ieee->wx_sem);	 */
 
-	if (!p->pointer || p->length != sizeof(struct ieee_param))
-		return -EINVAL;
+	if (p->length < sizeof(struct ieee_param) || !p->pointer) {
+		ret = -EINVAL;
+		goto out;
+	}
 
 	param = (struct ieee_param *)rtw_malloc(p->length);
-
-	if (param == NULL)
-		return -ENOMEM;
+	if (param == NULL) {
+		ret = -ENOMEM;
+		goto out;
+	}
 
 	if (copy_from_user(param, p->pointer, p->length)) {
 		rtw_mfree((u8 *)param, p->length);
-		return -EFAULT;
+		ret = -EFAULT;
+		goto out;
 	}
 
 	switch (param->cmd) {
@@ -6905,7 +6915,12 @@ static int wpa_supplicant_ioctl(struct net_device *dev, struct iw_point *p)
 
 	rtw_mfree((u8 *)param, p->length);
 
+out:
+
+	/* up(&ieee->wx_sem); */
+
 	return ret;
+
 }
 
 #ifdef CONFIG_AP_MODE
@@ -7712,20 +7727,31 @@ static int rtw_hostapd_ioctl(struct net_device *dev, struct iw_point *p)
 	* so, we just check hw_init_completed
 	*/
 
-	if (!rtw_is_hw_init_completed(padapter))
-		return -EPERM;
+	if (!rtw_is_hw_init_completed(padapter)) {
+		ret = -EPERM;
+		goto out;
+	}
 
-	if (!p->pointer || p->length != (sizeof(struct ieee_param) + 100))
-		return -EINVAL;
+
+	/* if (p->length < sizeof(struct ieee_param) || !p->pointer){ */
+	if (!p->pointer) {
+		ret = -EINVAL;
+		goto out;
+	}
 
 	param = (struct ieee_param *)rtw_malloc(p->length);
-	if (param == NULL)
-		return -ENOMEM;
+	if (param == NULL) {
+		ret = -ENOMEM;
+		goto out;
+	}
 
 	if (copy_from_user(param, p->pointer, p->length)) {
 		rtw_mfree((u8 *)param, p->length);
-		return -EFAULT;
+		ret = -EFAULT;
+		goto out;
 	}
+
+	/* RTW_INFO("%s, cmd=%d\n", __FUNCTION__, param->cmd); */
 
 	switch (param->cmd) {
 	case RTL871X_HOSTAPD_FLUSH:
@@ -7819,7 +7845,10 @@ static int rtw_hostapd_ioctl(struct net_device *dev, struct iw_point *p)
 
 	rtw_mfree((u8 *)param, p->length);
 
+out:
+
 	return ret;
+
 }
 #endif
 

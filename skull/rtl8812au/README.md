@@ -15,7 +15,7 @@ Only for use with Linux & Android
 [![Armbian](https://img.shields.io/badge/Armbian-supported-blue.svg)](https://www.armbian.com)
 [![ArchLinux](https://img.shields.io/badge/ArchLinux-supported-blue.svg)](https://img.shields.io/badge/ArchLinux-supported-blue.svg)
 [![aircrack-ng](https://img.shields.io/badge/aircrack--ng-supported-blue.svg)](https://github.com/aircrack-ng/aircrack-ng)
-[![wifite2](https://img.shields.io/badge/wifite2-supported-blue.svg)](https://github.com/kimocoder/wifite2)
+[![wifite2](https://img.shields.io/badge/wifite2-supported-blue.svg)](https://github.com/derv82/wifite2)
 
 
 ### Important!
@@ -96,12 +96,12 @@ cd rtl*
 Package / Build dependencies (Kali)
 ```
 $ sudo apt-get update
-$ sudo apt-get install build-essential libelf-dev linux-headers-`uname -r`
+$ sudo apt-get install build-essential bc libelf-dev linux-headers-`uname -r`
 ```
 #### For Raspberry (RPI)
 
 ```
-$ sudo apt-get install raspberrypi-kernel-headers
+$ sudo apt-get install bc raspberrypi-kernel-headers
 ```
 
 Then run this step to change platform in Makefile, For RPI 1/2/3/ & 0/Zero:

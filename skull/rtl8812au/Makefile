@@ -1,24 +1,23 @@
 EXTRA_CFLAGS += $(USER_EXTRA_CFLAGS) -fno-pie
 EXTRA_CFLAGS += -O3
 EXTRA_CFLAGS += -Wno-unused-variable
-#EXTRA_CFLAGS += -Wno-unused-value
+EXTRA_CFLAGS += -Wno-unused-value
 EXTRA_CFLAGS += -Wno-unused-label
-#EXTRA_CFLAGS += -Wno-unused-parameter
+EXTRA_CFLAGS += -Wno-unused-parameter
 EXTRA_CFLAGS += -Wno-unused-function
-EXTRA_CFLAGS += -Wimplicit-fallthrough
-#EXTRA_CFLAGS += -Wno-parentheses-equality
-#EXTRA_CFLAGS += -Wno-pointer-bool-conversion
+EXTRA_CFLAGS += -Wno-parentheses-equality
+EXTRA_CFLAGS += -Wno-pointer-bool-conversion
 EXTRA_CFLAGS += -Wno-unknown-pragmas
-#EXTRA_CFLAGS += -Wno-unused
+EXTRA_CFLAGS += -Wno-unused
 EXTRA_CFLAGS += -Wno-vla -g
 
 #GCC_VER_49 := $(shell echo `$(CC) -dumpversion | cut -f1-2 -d.` \>= 4.9 | bc )
 #ifeq ($(GCC_VER_49),1)
-#EXTRA_CFLAGS += -Wno-date-time	# Fix compile error && warning on gcc 4.9 and later
+EXTRA_CFLAGS += -Wno-date-time	# Fix compile error && warning on gcc 4.9 and later
 #endif
 
 EXTRA_CFLAGS += -I$(src)/include
-EXTRA_LDFLAGS += --strip-all -O3
+EXTRA_LDFLAGS += --strip-debug
 
 ########################## WIFI IC ############################
 CONFIG_RTL8812A = y
@@ -92,8 +91,8 @@ CONFIG_RTW_SDIO_PM_KEEP_POWER = y
 ###################### MP HW TX MODE FOR VHT #######################
 CONFIG_MP_VHT_HW_TX_MODE = n
 ###################### Platform Related #######################
-CONFIG_PLATFORM_I386_PC = y
-CONFIG_PLATFORM_ANDROID_ARM64 = n
+CONFIG_PLATFORM_I386_PC = n
+CONFIG_PLATFORM_ANDROID_ARM64 = y
 CONFIG_PLATFORM_ARM_RPI = n
 CONFIG_PLATFORM_ARM64_RPI = n
 CONFIG_PLATFORM_ARM_NV_NANO = n
@@ -165,13 +164,12 @@ CONFIG_CUSTOMER_HUAWEI_GENERAL = n
 
 CONFIG_DRVEXT_MODULE = n
 
-ifeq ($(CONFIG_RTL8812AU), )
-ifneq (,$(findstring /usr/lib/dkms,$(PATH)))
-    export TopDIR ?= $(shell pwd)
+ifeq ($(CONFIG_RTL8812AU), m)
+export TopDIR ?= $(shell pwd)/../drivers/aircrack/rtl8812au
 else
-export TopDIR ?= $(srctree)/$(src)
+export TopDIR ?= $(shell pwd)/drivers/aircrack/rtl8812au
 endif
-endif
+
 
 ########### COMMON  #################################
 ifeq ($(CONFIG_USB_HCI), y)

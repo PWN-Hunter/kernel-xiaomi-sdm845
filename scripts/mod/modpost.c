@@ -2201,7 +2201,7 @@ static int add_versions(struct buffer *b, struct module *mod)
 				} else {
 					merror("\"%s\" [%s.ko] undefined!\n",
 					       s->name, mod->name);
-					err = 1;
+					err = 0;
 				}
 			}
 			continue;

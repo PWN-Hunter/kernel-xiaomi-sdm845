@@ -72,14 +72,6 @@ int rtw_scan_mode = 1;/* active, passive */
 	int rtw_lps_chk_by_tp = 0;
 #endif /* CONFIG_POWER_SAVING */
 
-int rtw_monitor_overwrite_seqnum = 0;
-module_param(rtw_monitor_overwrite_seqnum, int, 0644);
-MODULE_PARM_DESC(rtw_monitor_overwrite_seqnum, "Overwrite the sequence number of injected frames");
-
-int rtw_monitor_retransmit = 0;
-module_param(rtw_monitor_retransmit, int, 0644);
-MODULE_PARM_DESC(rtw_monitor_retransmit, "Retransmit injected frames");
-
 int rtw_monitor_disable_1m = 0;
 module_param(rtw_monitor_disable_1m, int, 0644);
 MODULE_PARM_DESC(rtw_monitor_disable_1m, "Disable default 1Mbps rate for monitor injected frames");
@@ -1231,8 +1223,6 @@ uint loadparam(_adapter *padapter)
 	registry_par->fw_tbtt_rpt = rtw_tbtt_rpt;
 #endif
 
-	registry_par->monitor_overwrite_seqnum = (u8)rtw_monitor_overwrite_seqnum;
-	registry_par->monitor_retransmit = (u8)rtw_monitor_retransmit;
 	registry_par->monitor_disable_1m = (u8)rtw_monitor_disable_1m;
 
 	return status;
@@ -3890,6 +3880,7 @@ static int netdev_close(struct net_device *pnetdev)
 		if (pnetdev)
 			rtw_netif_stop_queue(pnetdev);
 
+#ifndef CONFIG_ANDROID
 		/* s2. */
 		LeaveAllPowerSaveMode(padapter);
 		rtw_disassoc_cmd(padapter, 500, RTW_CMDF_WAIT_ACK);
@@ -3899,8 +3890,7 @@ static int netdev_close(struct net_device *pnetdev)
 		rtw_free_assoc_resources_cmd(padapter, _TRUE, RTW_CMDF_WAIT_ACK);
 		/* s2-4. */
 		rtw_free_network_queue(padapter, _TRUE);
-		// Close LED
-		rtw_led_control(padapter, LED_CTL_POWER_OFF);
+#endif
 	}
 
 #ifdef CONFIG_BR_EXT

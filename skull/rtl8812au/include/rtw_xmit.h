@@ -465,7 +465,6 @@ struct pkt_attrib {
 #endif /* CONFIG_WMMPS_STA */
 	
 	struct sta_info *psta;
-	u8	injected;
 
 	u8 rtsen;
 	u8 cts2self;

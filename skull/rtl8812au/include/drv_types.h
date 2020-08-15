@@ -134,10 +134,10 @@ typedef struct _ADAPTER _adapter, ADAPTER, *PADAPTER;
 	#include <rtw_iol.h>
 #endif /* CONFIG_IOL */
 
-#include <linux/ip.h>
-#include <linux/if_ether.h>
+#include <ip.h>
+#include <if_ether.h>
 #include <ethernet.h>
-#include <linux/circ_buf.h>
+#include <circ_buf.h>
 
 #include <rtw_android.h>
 
@@ -458,8 +458,6 @@ struct registry_priv {
 	u8 tdmadig_dynamic;
 #endif/*CONFIG_TDMADIG*/
 
-	u8 monitor_overwrite_seqnum;
-	u8 monitor_retransmit;
 	u8 monitor_disable_1m;
 };
 
