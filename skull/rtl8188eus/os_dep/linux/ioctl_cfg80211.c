@@ -686,12 +686,18 @@ static int rtw_cfg80211_sync_iftype(_adapter *adapter)
 
 static u64 rtw_get_systime_us(void)
 {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 39) && LINUX_VERSION_CODE < KERNEL_VERSION(4, 20, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 6, 0))
+	struct timespec64 ts;
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 39))
 	struct timespec ts;
-	get_monotonic_boottime(&ts);
-	return ((u64)ts.tv_sec * 1000000) + ts.tv_nsec / 1000;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 6, 0))
+	getboottime64(&ts);
 #elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 20, 0))
-	return ktime_to_us(ktime_get_boottime());
+	getboottime(&ts);
+#else
+	get_monotonic_boottime(&ts);
+#endif
+	return ((u64)ts.tv_sec * 1000000) + ts.tv_nsec / 1000;
 #else
 	struct timeval tv;
 	do_gettimeofday(&tv);
@@ -1105,8 +1111,7 @@ check_bss:
 		roam_info.resp_ie = pmlmepriv->assoc_rsp + sizeof(struct rtw_ieee80211_hdr_3addr) + 6;
 		roam_info.resp_ie_len = pmlmepriv->assoc_rsp_len - sizeof(struct rtw_ieee80211_hdr_3addr) - 6;
 
-		cfg80211_roamed(padapter->pnetdev, &roam_info, GFP_ATOMIC);
-		#else
+		cfg80211_roamed(padapter->pnetdev, &roam_info, GFP_ATOMIC)
 		cfg80211_roamed(padapter->pnetdev
 			#if LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 39) || defined(COMPAT_KERNEL_RELEASE)
 			, notify_channel
@@ -9768,3 +9773,4 @@ void rtw_cfg80211_dev_res_unregister(struct dvobj_priv *dvobj)
 }
 
 #endif /* CONFIG_IOCTL_CFG80211 */
+
