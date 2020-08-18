@@ -11,4 +11,4 @@ rm -rf ../out_menu
 echo " "
 echo " "
 echo " "
-echo "DONE, BYE"
+echo "DONE, BYE."
