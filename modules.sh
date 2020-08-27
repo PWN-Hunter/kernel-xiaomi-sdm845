@@ -9,8 +9,7 @@ export SUBARCH=arm64
 # Use GCC toolchains from this dir
 KERNEL_TOOLCHAIN=$ROMDIR/toolchain/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-
 ARM32_TOOLCHAIN=$ROMDIR/toolchain/arm/arm-linux-androideabi-4.9/bin/arm-linux-androideabi-
-# Clang is custom built for kernel 4.4.x
-CLANG_TOOLCHAIN=$ROMDIR/toolchain/clang/bin/clang-11
+CLANG_TOOLCHAIN=$ROMDIR/toolchain/clang_custom/bin/clang-11
 
 export CROSS_COMPILE=$KERNEL_TOOLCHAIN
 export CROSS_COMPILE_ARM32=$ARM32_TOOLCHAIN
