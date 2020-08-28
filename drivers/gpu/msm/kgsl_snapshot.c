@@ -1293,9 +1293,6 @@ static void kgsl_snapshot_save_frozen_objs(struct work_struct *work)
 			sizeof(struct kgsl_snapshot_section_header));
 	}
 
-	if (size == 0)
-		goto done;
-
 	if (size > device->snapshot_memory.size) {
 		SNAPSHOT_ERR_NOMEM(device, "OBJS");
 		goto done;

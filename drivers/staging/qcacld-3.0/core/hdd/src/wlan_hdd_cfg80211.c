@@ -5114,9 +5114,7 @@ static int __wlan_hdd_cfg80211_disable_dfs_chan_scan(struct wiphy *wiphy,
 						     const void *data,
 						     int data_len)
 {
-#ifdef WLAN_DEBUG
 	struct net_device *dev = wdev->netdev;
-#endif
 	struct hdd_context *hdd_ctx  = wiphy_priv(wiphy);
 	struct nlattr *tb[QCA_WLAN_VENDOR_ATTR_SET_NO_DFS_FLAG_MAX + 1];
 	int ret_val;
@@ -21914,18 +21912,17 @@ int wlan_hdd_disconnect(struct hdd_adapter *adapter, u16 reason,
  */
 static void hdd_print_netdev_txq_status(struct net_device *dev)
 {
+#ifdef WLAN_DEBUG
 	unsigned int i;
 
 	if (!dev)
 		return;
 
 	for (i = 0; i < dev->num_tx_queues; i++) {
-#ifdef WLAN_DEBUG
 		struct netdev_queue *txq = netdev_get_tx_queue(dev, i);
-#endif
-
 		hdd_debug("netdev tx queue[%u] state: 0x%lx", i, txq->state);
 	}
+#endif
 }
 
 /**
@@ -24585,24 +24582,6 @@ wlan_hdd_cfg80211_update_connect_params(struct wiphy *wiphy,
 #if defined(WLAN_FEATURE_SAE) && \
 	defined(CFG80211_EXTERNAL_AUTH_SUPPORT)
 /**
- * wlan_hdd_extauth_copy_pmkid() - Copy the pmkid received from the
- * external authentication command received from the userspace.
- * @params: pointer to auth params
- * @pmkid: Pointer to destination pmkid buffer to be filled
- *
- * The caller should ensure that destination pmkid buffer is not NULL.
- *
- * Return: None
- */
-static void
-wlan_hdd_extauth_copy_pmkid(struct cfg80211_external_auth_params *params,
-			    uint8_t *pmkid)
-{
-	if (params->pmkid)
-		qdf_mem_copy(pmkid, params->pmkid, PMKID_LEN);
-}
-
-/**
  * __wlan_hdd_cfg80211_external_auth() - Handle external auth
  * @wiphy: Pointer to wireless phy
  * @dev: net device
@@ -24639,7 +24618,6 @@ __wlan_hdd_cfg80211_external_auth(struct wiphy *wiphy,
 
 	mac_handle = hdd_ctx->mac_handle;
 	qdf_mem_copy(peer_mac_addr.bytes, params->bssid, QDF_MAC_ADDR_SIZE);
-	wlan_hdd_extauth_copy_pmkid(params, pmkid);
 	sme_handle_sae_msg(mac_handle, adapter->session_id, params->status,
 			   peer_mac_addr, pmkid);
 	return ret;

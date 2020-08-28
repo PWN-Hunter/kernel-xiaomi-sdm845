@@ -1,7 +1,7 @@
 /*
  * QTI CE device driver.
  *
- * Copyright (c) 2010-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2010-2019, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -60,13 +60,13 @@ static DEFINE_MUTEX(send_cmd_lock);
 static DEFINE_MUTEX(qcedev_sent_bw_req);
 static DEFINE_MUTEX(hash_access_lock);
 
+MODULE_DEVICE_TABLE(of, qcedev_match);
+
 static const struct of_device_id qcedev_match[] = {
 	{	.compatible = "qcom,qcedev"},
 	{	.compatible = "qcom,qcedev,context-bank"},
 	{}
 };
-
-MODULE_DEVICE_TABLE(of, qcedev_match);
 
 static int qcedev_control_clocks(struct qcedev_control *podev, bool enable)
 {
@@ -1808,10 +1808,9 @@ static inline long qcedev_ioctl(struct file *file,
 				handle->sha_ctxt.diglen);
 		mutex_unlock(&hash_access_lock);
 		if (copy_to_user((void __user *)arg, &qcedev_areq->sha_op_req,
-					sizeof(struct qcedev_sha_op_req))) {
+					sizeof(struct qcedev_sha_op_req)))
 			err = -EFAULT;
 			goto exit_free_qcedev_areq;
-		}
 		}
 		break;
 
@@ -1901,10 +1900,9 @@ static inline long qcedev_ioctl(struct file *file,
 				handle->sha_ctxt.diglen);
 		mutex_unlock(&hash_access_lock);
 		if (copy_to_user((void __user *)arg, &qcedev_areq->sha_op_req,
-					sizeof(struct qcedev_sha_op_req))) {
+					sizeof(struct qcedev_sha_op_req)))
 			err = -EFAULT;
 			goto exit_free_qcedev_areq;
-		}
 		}
 		break;
 
@@ -1917,11 +1915,6 @@ static inline long qcedev_ioctl(struct file *file,
 			if (copy_from_user(&map_buf,
 					(void __user *)arg, sizeof(map_buf))) {
 				err = -EFAULT;
-				goto exit_free_qcedev_areq;
-			}
-
-			if (map_buf.num_fds > QCEDEV_MAX_BUFFERS) {
-				err = -EINVAL;
 				goto exit_free_qcedev_areq;
 			}
 
@@ -2084,14 +2077,11 @@ err:
 	podev->mem_client = NULL;
 
 	misc_deregister(&podev->miscdevice);
-	if (msm_bus_scale_client_update_request(podev->bus_scale_handle, 1))
-		pr_err("%s Unable to set high bandwidth\n", __func__);
 exit_qce_close:
 	if (handle)
 		qce_close(handle);
 exit_scale_busbandwidth:
-	if (msm_bus_scale_client_update_request(podev->bus_scale_handle, 0))
-		pr_err("%s Unable to set low bandwidth\n", __func__);
+	msm_bus_scale_client_update_request(podev->bus_scale_handle, 0);
 exit_unregister_bus_scale:
 	if (podev->platform_support.bus_scale_table != NULL)
 		msm_bus_scale_unregister_client(podev->bus_scale_handle);
@@ -2121,14 +2111,8 @@ static int qcedev_remove(struct platform_device *pdev)
 	podev = platform_get_drvdata(pdev);
 	if (!podev)
 		return 0;
-	if (msm_bus_scale_client_update_request(podev->bus_scale_handle, 1))
-		pr_err("%s Unable to set high bandwidth\n", __func__);
-
 	if (podev->qce)
 		qce_close(podev->qce);
-
-	if (msm_bus_scale_client_update_request(podev->bus_scale_handle, 0))
-		pr_err("%s Unable to set low bandwidth\n", __func__);
 
 	if (podev->platform_support.bus_scale_table != NULL)
 		msm_bus_scale_unregister_client(podev->bus_scale_handle);

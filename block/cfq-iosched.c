@@ -2834,11 +2834,9 @@ static struct cfq_queue *cfq_get_next_queue_forced(struct cfq_data *cfqd)
 	if (!cfqg)
 		return NULL;
 
-	for_each_cfqg_st(cfqg, i, j, st) {
-		cfqq = cfq_rb_first(st);
-		if (cfqq)
+	for_each_cfqg_st(cfqg, i, j, st)
+		if ((cfqq = cfq_rb_first(st)) != NULL)
 			return cfqq;
-	}
 	return NULL;
 }
 
@@ -5005,4 +5003,3 @@ module_exit(cfq_exit);
 MODULE_AUTHOR("Jens Axboe");
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Completely Fair Queueing IO scheduler");
-

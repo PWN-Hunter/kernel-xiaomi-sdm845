@@ -13,11 +13,6 @@
 #include <asm/ftrace.h>
 #include <asm/unwind.h>
 #include <asm/memory.h>
-#ifdef CONFIG_AEABI
-#include <asm/unistd-oabi.h>
-#endif
-
-	.equ    NR_syscalls, __NR_syscalls
 
 #ifdef CONFIG_NEED_RET_TO_USER
 #include <mach/entry-macro.S>
@@ -136,6 +131,21 @@ ENTRY(ret_from_fork)
 1:	get_thread_info tsk
 	b	ret_slow_syscall
 ENDPROC(ret_from_fork)
+
+	.equ NR_syscalls,0
+#define CALL(x) .equ NR_syscalls,NR_syscalls+1
+#include "calls.S"
+
+/*
+ * Ensure that the system call table is equal to __NR_syscalls,
+ * which is the value the rest of the system sees
+ */
+.ifne NR_syscalls - __NR_syscalls
+.error "__NR_syscalls is not equal to the size of the syscall table"
+.endif
+
+#undef CALL
+#define CALL(x) .long x
 
 /*=============================================================================
  * SWI handler
@@ -284,48 +294,22 @@ __cr_alignment:
 #endif
 	.ltorg
 
-	.macro	syscall_table_start, sym
-	.equ	__sys_nr, 0
-	.type	\sym, #object
-ENTRY(\sym)
-	.endm
-
-	.macro	syscall, nr, func
-	.ifgt	__sys_nr - \nr
-	.error	"Duplicated/unorded system call entry"
-	.endif
-	.rept	\nr - __sys_nr
-	.long	sys_ni_syscall
-	.endr
-	.long	\func
-	.equ	__sys_nr, \nr + 1
-	.endm
-
-	.macro	syscall_table_end, sym
-	.ifgt	__sys_nr - __NR_syscalls
-	.error	"System call table too big"
-	.endif
-	.rept	__NR_syscalls - __sys_nr
-	.long	sys_ni_syscall
-	.endr
-	.size	\sym, . - \sym
-	.endm
-
-#define NATIVE(nr, func) syscall nr, func
-
 /*
  * This is the syscall table declaration for native ABI syscalls.
  * With EABI a couple syscalls are obsolete and defined as sys_ni_syscall.
  */
-	syscall_table_start sys_call_table
-#define COMPAT(nr, native, compat) syscall nr, native
+#define ABI(native, compat) native
 #ifdef CONFIG_AEABI
-#include <calls-eabi.S>
+#define OBSOLETE(syscall) sys_ni_syscall
 #else
-#include <calls-oabi.S>
+#define OBSOLETE(syscall) syscall
 #endif
-#undef COMPAT
-	syscall_table_end sys_call_table
+
+	.type	sys_call_table, #object
+ENTRY(sys_call_table)
+#include "calls.S"
+#undef ABI
+#undef OBSOLETE
 
 /*============================================================================
  * Special system call wrappers
@@ -430,10 +414,14 @@ ENDPROC(sys_oabi_readahead)
  * Let's declare a second syscall table for old ABI binaries
  * using the compatibility syscall entries.
  */
-	syscall_table_start sys_oabi_call_table
-#define COMPAT(nr, native, compat) syscall nr, compat
-#include <calls-oabi.S>
-	syscall_table_end sys_oabi_call_table
+#define ABI(native, compat) compat
+#define OBSOLETE(syscall) syscall
+
+	.type	sys_oabi_call_table, #object
+ENTRY(sys_oabi_call_table)
+#include "calls.S"
+#undef ABI
+#undef OBSOLETE
 
 #endif
 

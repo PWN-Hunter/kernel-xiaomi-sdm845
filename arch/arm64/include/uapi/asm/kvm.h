@@ -22,14 +22,13 @@
 #ifndef __ARM_KVM_H__
 #define __ARM_KVM_H__
 
-#define KVM_SPSR_EL1			0
-#define KVM_SPSR_SVC			KVM_SPSR_EL1
-#define KVM_SPSR_ABT			1
-#define KVM_SPSR_UND			2
-#define KVM_SPSR_IRQ			3
-#define KVM_SPSR_FIQ			4
-#define KVM_NR_SPSR			5
-
+#define KVM_SPSR_EL1	0
+#define KVM_SPSR_SVC	KVM_SPSR_EL1
+#define KVM_SPSR_ABT	1
+#define KVM_SPSR_UND	2
+#define KVM_SPSR_IRQ	3
+#define KVM_SPSR_FIQ	4
+#define KVM_NR_SPSR	5
 
 #ifndef __ASSEMBLY__
 #include <linux/psci.h>
@@ -66,9 +65,8 @@ struct kvm_regs {
 #define KVM_ARM_TARGET_CORTEX_A53	4
 /* Generic ARM v8 target */
 #define KVM_ARM_TARGET_GENERIC_V8	5
-#define KVM_ARM_TARGET_CORTEX_A72	6
 
-#define KVM_ARM_NUM_TARGETS		7
+#define KVM_ARM_NUM_TARGETS		6
 
 /* KVM_ARM_SET_DEVICE_ADDR ioctl id encoding */
 #define KVM_ARM_DEVICE_TYPE_SHIFT	0

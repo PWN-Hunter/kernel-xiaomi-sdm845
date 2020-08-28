@@ -1217,7 +1217,7 @@ static int secref_whitelist(const struct sectioncheck *mismatch,
 
 	/* Check for pattern 6 */
 	if (strstarts(fromsym, ".L"))
-		return 0;
+         	return 0;
 
 	/* Check for pattern 7 */
 	if (match(fromsec, text_sections) &&
@@ -2201,7 +2201,7 @@ static int add_versions(struct buffer *b, struct module *mod)
 				} else {
 					merror("\"%s\" [%s.ko] undefined!\n",
 					       s->name, mod->name);
-					err = 0;
+					err = 1;
 				}
 			}
 			continue;

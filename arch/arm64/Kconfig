@@ -1244,12 +1244,6 @@ config BUILD_ARM64_DT_OVERLAY
 	  This option enables support for DT overlay compilation.
 endmenu
 
-menu "Third party drivers"
-
-source "skull/Kconfig"
-
-endmenu
-
 menu "Userspace binary formats"
 
 source "fs/Kconfig.binfmt"

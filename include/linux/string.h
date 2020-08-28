@@ -99,36 +99,6 @@ extern __kernel_size_t strcspn(const char *,const char *);
 #ifndef __HAVE_ARCH_MEMSET
 extern void * memset(void *,int,__kernel_size_t);
 #endif
-
-#ifndef __HAVE_ARCH_MEMSET16
-extern void *memset16(uint16_t *, uint16_t, __kernel_size_t);
-#endif
-
-#ifndef __HAVE_ARCH_MEMSET32
-extern void *memset32(uint32_t *, uint32_t, __kernel_size_t);
-#endif
-
-#ifndef __HAVE_ARCH_MEMSET64
-extern void *memset64(uint64_t *, uint64_t, __kernel_size_t);
-#endif
-
-static inline void *memset_l(unsigned long *p, unsigned long v,
-		__kernel_size_t n)
-{
-	if (BITS_PER_LONG == 32)
-		return memset32((uint32_t *)p, v, n);
-	else
-		return memset64((uint64_t *)p, v, n);
-}
-
-static inline void *memset_p(void **p, void *v, __kernel_size_t n)
-{
-	if (BITS_PER_LONG == 32)
-		return memset32((uint32_t *)p, (uintptr_t)v, n);
-	else
-		return memset64((uint64_t *)p, (uintptr_t)v, n);
-}
-
 #ifndef __HAVE_ARCH_MEMCPY
 extern void * memcpy(void *,const void *,__kernel_size_t);
 #endif
@@ -410,35 +380,5 @@ __FORTIFY_INLINE char *strcpy(char *p, const char *q)
 }
 
 #endif
-
-/*
- * Replace some common string helpers with faster alternatives when one of the
- * arguments is a constant (i.e., literal string). This uses strlen instead of
- * sizeof for calculating the string length in order to silence compiler
- * warnings that may arise due to what the compiler thinks is incorrect sizeof
- * usage. The strlen calls on constants are folded into scalar values at compile
- * time, so performance is not reduced by using strlen.
- */
-#define strcpy(dest, src)							\
-	__builtin_choose_expr(__builtin_constant_p(src),			\
-		memcpy((dest), (src), strlen(src) + 1),				\
-		(strcpy)((dest), (src)))
-
-#define strcat(dest, src)							\
-	__builtin_choose_expr(__builtin_constant_p(src),			\
-		({								\
-			memcpy((dest) + strlen(dest), (src), strlen(src) + 1);	\
-			(dest);							\
-		}),								\
-		(strcat)((dest), (src)))
-
-#define strcmp(left, right)							\
-	__builtin_choose_expr(__builtin_constant_p(left),			\
-		__builtin_choose_expr(__builtin_constant_p(right),		\
-			(strcmp)((left), (right)),				\
-			memcmp((left), (right), strlen(left) + 1)),		\
-		__builtin_choose_expr(__builtin_constant_p(right),		\
-			memcmp((left), (right), strlen(right) + 1),		\
-			(strcmp)((left), (right))))
 
 #endif /* _LINUX_STRING_H_ */

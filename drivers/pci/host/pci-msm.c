@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2020, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2019, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -1332,7 +1332,6 @@ static void msm_pcie_sel_debug_testcase(struct msm_pcie_dev_t *dev,
 	static void __iomem *loopback_lbar_vir;
 	int ret, i;
 	u32 base_sel_size = 0;
-	u32 wr_ofst = 0;
 
 	switch (testcase) {
 	case MSM_PCIE_OUTPUT_PCIE_INFO:
@@ -1564,24 +1563,22 @@ static void msm_pcie_sel_debug_testcase(struct msm_pcie_dev_t *dev,
 			break;
 		}
 
-		wr_ofst = wr_offset;
-
 		PCIE_DBG_FS(dev,
 			"base: %s: 0x%pK\nwr_offset: 0x%x\nwr_mask: 0x%x\nwr_value: 0x%x\n",
 			dev->res[base_sel - 1].name,
 			dev->res[base_sel - 1].base,
-			wr_ofst, wr_mask, wr_value);
+			wr_offset, wr_mask, wr_value);
 
 		base_sel_size = resource_size(dev->res[base_sel - 1].resource);
 
-		if (wr_ofst >  base_sel_size - 4 ||
-			msm_pcie_check_align(dev, wr_ofst))
+		if (wr_offset >  base_sel_size - 4 ||
+			msm_pcie_check_align(dev, wr_offset))
 			PCIE_DBG_FS(dev,
 				"PCIe: RC%d: Invalid wr_offset: 0x%x. wr_offset should be no more than 0x%x\n",
-				dev->rc_idx, wr_ofst, base_sel_size - 4);
+				dev->rc_idx, wr_offset, base_sel_size - 4);
 		else
 			msm_pcie_write_reg_field(dev->res[base_sel - 1].base,
-				wr_ofst, wr_mask, wr_value);
+				wr_offset, wr_mask, wr_value);
 
 		break;
 	case MSM_PCIE_DUMP_PCIE_REGISTER_SPACE:
@@ -3773,7 +3770,7 @@ static int msm_pcie_enable(struct msm_pcie_dev_t *dev, u32 options)
 
 	/* assert PCIe reset link to keep EP in reset */
 
-	PCIE_INFO(dev, "PCIe: Assert the reset of endpoint of RC%d.\n",
+	PCIE_DBG(dev, "PCIe: Assert the reset of endpoint of RC%d.\n",
 		dev->rc_idx);
 	gpio_set_value(dev->gpio[MSM_PCIE_GPIO_PERST].num,
 				dev->gpio[MSM_PCIE_GPIO_PERST].on);
@@ -3896,7 +3893,7 @@ static int msm_pcie_enable(struct msm_pcie_dev_t *dev, u32 options)
 		dev->rc_idx, retries);
 
 	if (pcie_phy_is_ready(dev))
-		PCIE_INFO(dev, "PCIe RC%d PHY is ready!\n", dev->rc_idx);
+		PCIE_DBG(dev, "PCIe RC%d PHY is ready!\n", dev->rc_idx);
 	else {
 		PCIE_ERR(dev, "PCIe PHY RC%d failed to come up!\n",
 			dev->rc_idx);
@@ -3914,7 +3911,7 @@ static int msm_pcie_enable(struct msm_pcie_dev_t *dev, u32 options)
 
 	/* de-assert PCIe reset link to bring EP out of reset */
 
-	PCIE_INFO(dev, "PCIe: Release the reset of endpoint of RC%d.\n",
+	PCIE_DBG(dev, "PCIe: Release the reset of endpoint of RC%d.\n",
 		dev->rc_idx);
 	gpio_set_value(dev->gpio[MSM_PCIE_GPIO_PERST].num,
 				1 - dev->gpio[MSM_PCIE_GPIO_PERST].on);
@@ -3959,9 +3956,9 @@ static int msm_pcie_enable(struct msm_pcie_dev_t *dev, u32 options)
 		msm_pcie_confirm_linkup(dev, false, false, NULL)) {
 		PCIE_DBG(dev, "Link is up after %d checkings\n",
 			link_check_count);
-		PCIE_INFO(dev, "PCIe RC%d link initialized\n", dev->rc_idx);
+		PCIE_DBG(dev, "PCIe RC%d link initialized\n", dev->rc_idx);
 	} else {
-		PCIE_INFO(dev, "PCIe: Assert the reset of endpoint of RC%d.\n",
+		PCIE_DBG(dev, "PCIe: Assert the reset of endpoint of RC%d.\n",
 			dev->rc_idx);
 		gpio_set_value(dev->gpio[MSM_PCIE_GPIO_PERST].num,
 			dev->gpio[MSM_PCIE_GPIO_PERST].on);
@@ -4065,7 +4062,7 @@ static void msm_pcie_disable(struct msm_pcie_dev_t *dev, u32 options)
 	dev->power_on = false;
 	dev->link_turned_off_counter++;
 
-	PCIE_INFO(dev, "PCIe: Assert the reset of endpoint of RC%d.\n",
+	PCIE_DBG(dev, "PCIe: Assert the reset of endpoint of RC%d.\n",
 		dev->rc_idx);
 
 	gpio_set_value(dev->gpio[MSM_PCIE_GPIO_PERST].num,
@@ -4960,47 +4957,58 @@ static struct irq_chip pcie_msi_chip = {
 	.irq_unmask = unmask_msi_irq,
 };
 
-static int msm_pcie_create_irq(struct irq_domain *domain, unsigned int irq_base,
-				irq_hw_number_t hwirq_base, int count)
+static int msm_pcie_create_irq(struct msm_pcie_dev_t *dev)
 {
-	struct device_node *of_node;
-	int ret;
+	int irq, pos;
 
-	of_node = irq_domain_get_of_node(domain);
-	ret = __irq_alloc_descs(irq_base, hwirq_base, count,
-			of_node_to_nid(of_node), THIS_MODULE, NULL);
-	if (unlikely(ret < 0))
-		return ret;
+	PCIE_DBG(dev, "RC%d\n", dev->rc_idx);
 
-	irq_domain_associate_many(domain, ret, hwirq_base, count);
-	return ret;
+again:
+	pos = find_first_zero_bit(dev->msi_irq_in_use, PCIE_MSI_NR_IRQS);
+
+	if (pos >= PCIE_MSI_NR_IRQS)
+		return -ENOSPC;
+
+	PCIE_DBG(dev, "pos:%d msi_irq_in_use:%ld\n", pos, *dev->msi_irq_in_use);
+
+	if (test_and_set_bit(pos, dev->msi_irq_in_use))
+		goto again;
+	else
+		PCIE_DBG(dev, "test_and_set_bit is successful pos=%d\n", pos);
+
+	irq = irq_create_mapping(dev->irq_domain, pos);
+	if (!irq)
+		return -EINVAL;
+
+	return irq;
 }
 
 static int arch_setup_msi_irq_default(struct pci_dev *pdev,
 		struct msi_desc *desc, int nvec)
 {
-	int irq, index, firstirq = 0;
+	int irq;
 	struct msi_msg msg;
 	struct msm_pcie_dev_t *dev = PCIE_BUS_PRIV_DATA(pdev->bus);
 
 	PCIE_DBG(dev, "RC%d\n", dev->rc_idx);
 
-	firstirq = msm_pcie_create_irq(dev->irq_domain, -1, 0, nvec);
+	irq = msm_pcie_create_irq(dev);
 
-	PCIE_DBG(dev, "%d IRQs are allocated.\n", nvec);
+	PCIE_DBG(dev, "IRQ %d is allocated.\n", irq);
 
-	if (firstirq < 0)
+	if (irq < 0)
 		return irq;
 
-	for (index = 0, irq = firstirq ; index < nvec; index++, irq++) {
-		irq_set_chip_data(irq, pdev);
-		irq_set_msi_desc(irq, desc);
-		/* write msi vector and data */
-		msg.address_hi = 0;
-		msg.address_lo = MSM_PCIE_MSI_PHY;
-		msg.data = irq - irq_find_mapping(dev->irq_domain, 0);
-		write_msi_msg(irq, &msg);
-	}
+	PCIE_DBG(dev, "irq %d allocated\n", irq);
+
+	irq_set_chip_data(irq, pdev);
+	irq_set_msi_desc(irq, desc);
+
+	/* write msi vector and data */
+	msg.address_hi = 0;
+	msg.address_lo = MSM_PCIE_MSI_PHY;
+	msg.data = irq - irq_find_mapping(dev->irq_domain, 0);
+	write_msi_msg(irq, &msg);
 
 	return 0;
 }
@@ -5178,6 +5186,7 @@ static const struct irq_domain_ops msm_pcie_msi_ops = {
 static int32_t msm_pcie_irq_init(struct msm_pcie_dev_t *dev)
 {
 	int rc;
+	int msi_start =  0;
 	struct device *pdev = &dev->pdev->dev;
 
 	PCIE_DBG(dev, "RC%d\n", dev->rc_idx);
@@ -5308,6 +5317,7 @@ static int32_t msm_pcie_irq_init(struct msm_pcie_dev_t *dev)
 			return PTR_ERR(dev->irq_domain);
 		}
 
+		msi_start = irq_create_mapping(dev->irq_domain, 0);
 	}
 
 	return 0;
@@ -5535,7 +5545,7 @@ static void msm_pcie_config_link_pm_rc(struct msm_pcie_dev_t *dev,
 {
 	bool child_l0s_enable = 0, child_l1_enable = 0, child_l1ss_enable = 0;
 
-	if (!pdev->subordinate || list_empty(&pdev->subordinate->devices)) {
+	if (!pdev->subordinate || !(&pdev->subordinate->devices)) {
 		PCIE_DBG(dev,
 			"PCIe: RC%d: no device connected to root complex\n",
 			dev->rc_idx);

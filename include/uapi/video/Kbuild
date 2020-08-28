@@ -1,2 +1,6 @@
 # UAPI Header export list
-no-export-headers += adf.h
+header-y += edid.h
+header-y += msm_hdmi_hdcp_mgr.h
+header-y += msm_hdmi_modes.h
+header-y += sisfb.h
+header-y += uvesafb.h

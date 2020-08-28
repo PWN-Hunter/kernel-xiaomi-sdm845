@@ -1,4 +1,4 @@
-/* Copyright (c) 2018,2019 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2018 The Linux Foundation. All rights reserved.
  * Copyright (C) 2018 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -810,7 +810,8 @@ stepper_exit:
 	chip->slave_fcc_ua = parallel_fcc;
 
 	if (reschedule_ms) {
-		schedule_delayed_work(&chip->fcc_stepper_work,
+		queue_delayed_work(system_power_efficient_wq,
+			&chip->fcc_stepper_work,
 				msecs_to_jiffies(reschedule_ms));
 		pr_debug("Rescheduling FCC_STEPPER work\n");
 		return;
@@ -927,8 +928,9 @@ static int usb_icl_vote_callback(struct votable *votable, void *data,
 	if (icl_ua <= 1400000)
 		vote(chip->pl_enable_votable_indirect, USBIN_I_VOTER, false, 0);
 	else
-		schedule_delayed_work(&chip->status_change_work,
-						msecs_to_jiffies(PL_DELAY_MS));
+		queue_delayed_work(system_power_efficient_wq,
+			&chip->status_change_work,
+				msecs_to_jiffies(PL_DELAY_MS));
 
 	/* rerun AICL */
 	/* get the settled current */
@@ -1071,8 +1073,8 @@ static int pl_disable_vote_callback(struct votable *votable,
 			if (chip->step_fcc) {
 				vote(chip->pl_awake_votable, FCC_STEPPER_VOTER,
 					true, 0);
-				schedule_delayed_work(&chip->fcc_stepper_work,
-					0);
+				queue_delayed_work(system_power_efficient_wq,
+					&chip->fcc_stepper_work,0);
 				}
 		} else {
 			/*
@@ -1203,16 +1205,17 @@ static int pl_disable_vote_callback(struct votable *votable,
 			if (chip->step_fcc) {
 				vote(chip->pl_awake_votable, FCC_STEPPER_VOTER,
 					true, 0);
-				schedule_delayed_work(&chip->fcc_stepper_work,
-					0);
+				queue_delayed_work(system_power_efficient_wq,
+					&chip->fcc_stepper_work,0);
 			}
 		}
 
 		rerun_election(chip->fv_votable);
 
 		cancel_delayed_work_sync(&chip->pl_awake_work);
-		schedule_delayed_work(&chip->pl_awake_work,
-						msecs_to_jiffies(5000));
+		queue_delayed_work(system_power_efficient_wq,
+			&chip->pl_awake_work,
+				msecs_to_jiffies(5000));
 	}
 
 	/* notify parallel state change */
@@ -1244,7 +1247,7 @@ static int pl_awake_vote_callback(struct votable *votable,
 	struct pl_data *chip = data;
 
 	if (awake)
-		__pm_wakeup_event(chip->pl_ws, 500);
+		__pm_stay_awake(chip->pl_ws);
 	else
 		__pm_relax(chip->pl_ws);
 
@@ -1543,7 +1546,8 @@ static int pl_notifier_call(struct notifier_block *nb,
 	if ((strcmp(psy->desc->name, "parallel") == 0)
 	    || (strcmp(psy->desc->name, "battery") == 0)
 	    || (strcmp(psy->desc->name, "main") == 0))
-		schedule_delayed_work(&chip->status_change_work, 0);
+		queue_delayed_work(system_power_efficient_wq,
+			&chip->status_change_work, 0);
 
 	return NOTIFY_OK;
 }
@@ -1603,12 +1607,6 @@ int qcom_batt_init(int smb_version)
 	if (!chip->pl_ws)
 		goto cleanup;
 
-	INIT_DELAYED_WORK(&chip->status_change_work, status_change_work);
-	INIT_WORK(&chip->pl_taper_work, pl_taper_work);
-	INIT_WORK(&chip->pl_disable_forever_work, pl_disable_forever_work);
-	INIT_DELAYED_WORK(&chip->pl_awake_work, pl_awake_work);
-	INIT_DELAYED_WORK(&chip->fcc_stepper_work, fcc_stepper_work);
-
 	chip->fcc_votable = create_votable("FCC", VOTE_MIN,
 					pl_fcc_vote_callback,
 					chip);
@@ -1662,6 +1660,12 @@ int qcom_batt_init(int smb_version)
 	}
 
 	vote(chip->pl_disable_votable, PL_INDIRECT_VOTER, true, 0);
+
+	INIT_DELAYED_WORK(&chip->status_change_work, status_change_work);
+	INIT_WORK(&chip->pl_taper_work, pl_taper_work);
+	INIT_WORK(&chip->pl_disable_forever_work, pl_disable_forever_work);
+	INIT_DELAYED_WORK(&chip->pl_awake_work, pl_awake_work);
+	INIT_DELAYED_WORK(&chip->fcc_stepper_work, fcc_stepper_work);
 
 	rc = pl_register_notifier(chip);
 	if (rc < 0) {
