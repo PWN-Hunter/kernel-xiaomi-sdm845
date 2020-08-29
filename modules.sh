@@ -16,4 +16,13 @@ export CROSS_COMPILE_ARM32=$ARM32_TOOLCHAIN
 
 echo "Starting compile"
 make O=../out skull_defconfig
-make O=../out CC=$CLANG_TOOLCHAIN CLANG_TRIPLE=aarch64-linux-gnu modules_install INSTALL_MOD_PATH=../modules_raw
+
+make O=../out modules_install INSTALL_MOD_PATH=../modules_raw
+
+make O=../out modules_prepare
+
+make O=../out modules INSTALL_MOD_PATH=../modules_raw
+
+make O=../out modules_install INSTALL_MOD_PATH=../modules_raw
+
+make O=../out headers_install INSTALL_HDR_PATH=../modules_raw
