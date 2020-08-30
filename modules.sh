@@ -14,6 +14,8 @@ CLANG_TOOLCHAIN=$ROMDIR/toolchain/clang_custom/bin/clang-11
 export CROSS_COMPILE=$KERNEL_TOOLCHAIN
 export CROSS_COMPILE_ARM32=$ARM32_TOOLCHAIN
 
+echo "Deleting old modules"
+rm -rf ../modules_raw
 echo "Starting compile"
 make O=../out skull_defconfig
 
