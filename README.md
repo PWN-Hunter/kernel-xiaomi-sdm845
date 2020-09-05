@@ -5,7 +5,7 @@ PWN-Hunter kernel (Based on LawRun source)
 
 ### LawRun source ###
 * https://github.com/negrroo/LawRun
-* Also please dont hate lawrun kernel as some other people too :)
+* Also please dont hate lawrun kernel like some other people too :)
 * Link for his group: https://t.me/LawRunKernel
 
 ### PWN-Hunter group ###
