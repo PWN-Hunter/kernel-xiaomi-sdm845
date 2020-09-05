@@ -5,6 +5,7 @@ cd source
 echo "Deleting old modules"
 rm -rf ../outcome/modules/*
 rm -rf ../outcome/headers/*
+
 echo "Starting compile"
 make O=../outcome/kernel skull_defconfig
 
