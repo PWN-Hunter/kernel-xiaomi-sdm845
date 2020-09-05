@@ -29,11 +29,15 @@ if [ ! "$(grep /init.nethunter.rc /system_root/init.rc)" ]; then
 fi;
 
 if [ ! "$(grep /dev/hidg* /system_root/ueventd.rc)" ]; then
-  sed -e '71i /dev/hidg* 0666 root root' -i /system_root/ueventd.rc;
+  sed -e '45i #' -i /system_root/ueventd.rc;
+  sed -e '46i # Add hidg perms' -i /system_root/ueventd.rc;
+  sed -e '47i /dev/hidg* 0666 root root' -i /system_root/ueventd.rc;
+  sed -e '48i # End of hidg perm' -i /system_root/ueventd.rc;
   ui_print "Patch added to ueventd.rc!!"
 fi;
-
-cp -rf $AKHOME/root/init.nethunter.rc /system_root/init.nethunter.rc
+rm -rf /system_root/init.nethunter.rc
+echo "# test" > /system_root/init.nethunter.rc
+cat /tmp/anykernel/root/init.nethunter.rc > /system_root/init.nethunter.rc
 ui_print "Copied init.nethunter.rc !!"
 
 
