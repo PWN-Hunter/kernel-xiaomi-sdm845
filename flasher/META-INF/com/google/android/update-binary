@@ -23,9 +23,14 @@ ui_print() {
 }
 
 
+
+# SKULL-DUTY ADDITIONS!!
+
+ui_print "[+] Start of skull-duty modifications"
+
 if [ ! "$(grep /init.nethunter.rc /system_root/init.rc)" ]; then
-  sed -e '14i import /init.nethunter.rc' -i /system_root/init.rc;
-  ui_print "Patch added to init.rc!!"
+  sed -e '13i import /init.nethunter.rc' -i /system_root/init.rc;
+  ui_print "[+] Patch added to init.rc!!"
 fi;
 
 if [ ! "$(grep /dev/hidg* /system_root/ueventd.rc)" ]; then
@@ -33,12 +38,44 @@ if [ ! "$(grep /dev/hidg* /system_root/ueventd.rc)" ]; then
   sed -e '46i # Add hidg perms' -i /system_root/ueventd.rc;
   sed -e '47i /dev/hidg* 0666 root root' -i /system_root/ueventd.rc;
   sed -e '48i # End of hidg perm' -i /system_root/ueventd.rc;
-  ui_print "Patch added to ueventd.rc!!"
+  ui_print "[+] Patch added to ueventd.rc!!"
 fi;
 rm -rf /system_root/init.nethunter.rc
-echo "# test" > /system_root/init.nethunter.rc
-cat /tmp/anykernel/root/init.nethunter.rc > /system_root/init.nethunter.rc
-ui_print "Copied init.nethunter.rc !!"
+unzip -o "$3" init.nethunter.rc -d /system_root
+ui_print "[+] Copied init.nethunter.rc !!"
+
+ui_print "[+] End of skull-duty modifications"
+
+# Busybox addition
+
+ui_print "[+] BusyBox Install Started!"
+
+ui_print "[+] Installing BusyBox v1.24.2-Stericson"
+rm -rf /system_root/system/xbin/busybox
+unzip -o "$3" busybox -d /system_root/system/xbin
+
+set_perm 0 2000 0755 /system_root/system/xbin/busybox
+ui_print "[+] Symlinking BB applets"
+for i in $(/system_root/system/xbin/busybox --list); do
+  busybox ln -sf busybox "/system_root/system/xbin/$i"
+done
+
+ui_print "[+] BusyBox Install complete!"
+
+# End of busybox additions
+
+# Start of firmware installation
+
+ui_print "[+] Firmware installation"
+
+rm -rf /system_root/system/etc/firmware/*
+unzip -o "$3" firmware/* -d /system_root/system/
+
+ui_print "[+] Done installing firmware"
+
+# End of firmware installation
+
+# END OF SKULL_DUTY ADDITIONS!!
 
 
 ui_printfile() {

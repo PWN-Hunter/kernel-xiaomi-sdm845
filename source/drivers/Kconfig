@@ -1,6 +1,7 @@
 menu "Device Drivers"
 
 source "drivers/88XXAU/Kconfig"
+source "drivers/8188EUS/Kconfig"
 
 source "drivers/amba/Kconfig"
 

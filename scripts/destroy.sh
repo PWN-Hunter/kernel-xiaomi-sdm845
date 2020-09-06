@@ -8,4 +8,5 @@ make clean
 make mrproper
 rm -rf ../outcome/kernel
 mkdir ../outcome/kernel
+rm -rf ../outcome/flasher/*
 echo "DONE"
