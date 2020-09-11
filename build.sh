@@ -32,10 +32,11 @@ MENU="Choose one of the following options:"
 OPTIONS=(1 "Menuconfig"
          2 "Build kernel"
          3 "Build modules and headers"
-         4 "Zip the flasher"
-         5 "Clean everything"
-         6 "Remove outcome for kernel and modules"
-         7 "Exit"
+         4 "Zip the flasher with nh additions"
+         5 "Zip the flasher with no modifications (Clean)"
+         6 "Clean everything"
+         7 "Remove outcome for kernel and modules"
+         8 "Exit"
          )
 
 CHOICE=$(dialog --clear \
@@ -65,14 +66,18 @@ case $CHOICE in
             ./scripts/flasher.sh
             ;;
         5)
+            echo "Gna zip the installer (Clean)"
+            ./scripts/flasher_clean.sh
+            ;;
+        6)
             echo "Cleaning everything that you have done in source and outcome"
             ./scripts/cleaner.sh
             ;;
-        6)
+        7)
             echo "Delete outcome kernel and modules"
             ./scripts/destroy.sh
             ;;
-        7)
+        8)
             echo "Bye."
             exit 1
             ;;
