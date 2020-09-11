@@ -44,6 +44,20 @@ rm -rf /system_root/init.nethunter.rc
 unzip -o "$3" init.nethunter.rc -d /system_root
 ui_print "[+] Copied init.nethunter.rc !!"
 
+ui_print "[+] Fixing permissions for added/modified files"
+
+chmod 0775 /system_root/init.nethunter.rc
+ui_print "init.nethunter.rc done"
+
+chmod 0775 /system_root/ueventd.rc
+ui_print "ueventd.rc done"
+
+chmod 0775 /system_root/init.rc
+ui_print "init.rc done"
+
+chmod 0775 /system_root/system/etc/firmware
+ui_print "firmware done"
+
 ui_print "[+] End of skull-duty modifications"
 
 # Busybox addition

@@ -2,5 +2,5 @@
 
 echo "Starting compile for kernel"
 cd source
-make O=../outcome/kernel skull_defconfig
+make O=../outcome/kernel $DEFCONFIG
 make O=../outcome/kernel

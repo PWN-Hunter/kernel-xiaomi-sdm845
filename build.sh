@@ -12,7 +12,7 @@ CLANG_TOOLCHAIN=$ROMDIR/toolchain/clang_custom/bin/clang-11
 
 export CROSS_COMPILE=$KERNEL_TOOLCHAIN
 export CROSS_COMPILE_ARM32=$ARM32_TOOLCHAIN
-
+export DEFCONFIG=skull_defconfig
 # gna check if dialog is installed
 
 if [ $(dpkg-query -W -f='${Status}' dialog 2>/dev/null | grep -c "ok installed") -eq 0 ];
@@ -49,7 +49,7 @@ CHOICE=$(dialog --clear \
 clear
 case $CHOICE in
         1)
-            echo "Menuconfig (skull_defconfig)"
+            echo "Menuconfig ($DEFCONFIG)"
             ./scripts/menuconfig.sh
             ;;
         2)

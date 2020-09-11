@@ -8,5 +8,8 @@ PWN-Hunter kernel (Based on LawRun source)
 * Also please dont hate lawrun kernel like some other people too :)
 * Link for his group: https://t.me/LawRunKernel
 
-### PWN-Hunter group ###
+### NetHunter (Unofficial) group ###
 * https://t.me/NetHunter_Chat
+
+### Team-420 group ###
+* https://t.me/team420nethunter
