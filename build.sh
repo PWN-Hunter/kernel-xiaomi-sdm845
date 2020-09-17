@@ -36,7 +36,8 @@ OPTIONS=(1 "Menuconfig"
          5 "Zip the flasher with no modifications (Clean)"
          6 "Clean everything"
          7 "Remove outcome for kernel and modules"
-         8 "Exit"
+         8 "Update source to latest"
+         9 "Exit"
          )
 
 CHOICE=$(dialog --clear \
@@ -78,6 +79,10 @@ case $CHOICE in
             ./scripts/destroy.sh
             ;;
         8)
+            echo "Updating submodule"
+            git submodule update
+            ;;
+        9)
             echo "Bye."
             exit 1
             ;;
