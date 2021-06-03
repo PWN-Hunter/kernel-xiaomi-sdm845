@@ -40,7 +40,7 @@
 
 &vendor {
 	bluetooth: bt_wcn3990 {
-		compatible = "qca,wcn3990";
+		compatible = "qca,wcn3990", "qcom,wcn3990-bt";
 		qca,bt-vdd-io-supply = <&pm8998_s3>;
 		qca,bt-vdd-xtal-supply = <&pm8998_s5>;
 		qca,bt-vdd-core-supply = <&pm8998_l7>;
@@ -58,6 +58,8 @@
 		qca,bt-vdd-core-current-level = <1>; /* LPM/PFM */
 		qca,bt-vdd-pa-current-level = <1>; /* LPM/PFM */
 		qca,bt-vdd-ldo-current-level = <1>; /* LPM/PFM */
+		
+		max-speed = <3200000>;
 	};
 };
 
