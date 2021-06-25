@@ -1,6 +1,3 @@
-Like https://github.com/cccooo/rtl8812au-centos-7.6, forked from aircrack-ng/rtl8188eus and modified for CentOS 7.9
-as CentOS Kernel 3.10 contains many code from 4.x
-
 ## rtl8188eus v5.3.9
 
 # Realtek rtl8188eus &amp; rtl8188eu &amp; rtl8188etv WiFi drivers
@@ -26,8 +23,8 @@ as CentOS Kernel 3.10 contains many code from 4.x
 
 # Howto build/install
 1. You will need to blacklist another driver in order to use this one.
-2. `echo 'blacklist r8188eu'|sudo tee -a '/etc/modprobe.d/realtek.conf'`
-3. `make && sudo make install`
+2. `echo "blacklist r8188eu" >> "/etc/modprobe.d/realtek.conf"`
+3. `make && make install`
 4. Reboot in order to blacklist and load the new driver/module.
 
 # MONITOR MODE howto

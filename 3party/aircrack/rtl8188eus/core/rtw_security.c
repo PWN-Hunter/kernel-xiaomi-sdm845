@@ -2133,7 +2133,8 @@ BIP_exit:
 #ifndef PLATFORM_FREEBSD
 #if defined(CONFIG_TDLS)
 /* compress 512-bits */
-static int rtw_sha256_compress(struct rtw_sha256_state *md, unsigned char *buf)
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
+static int sha256_compress(struct sha256_state *md, unsigned char *buf)
 {
 	u32 S[8], W[64], t0, t1;
 	u32 t;
@@ -2179,9 +2180,11 @@ static int rtw_sha256_compress(struct rtw_sha256_state *md, unsigned char *buf)
 		md->state[i] = md->state[i] + S[i];
 	return 0;
 }
+#endif
 
 /* Initialize the hash state */
-static void rtw_sha256_init(struct rtw_sha256_state *md)
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
+static void sha256_init(struct sha256_state *md)
 {
 	md->curlen = 0;
 	md->length = 0;
@@ -2194,6 +2197,7 @@ static void rtw_sha256_init(struct rtw_sha256_state *md)
 	md->state[6] = 0x1F83D9ABUL;
 	md->state[7] = 0x5BE0CD19UL;
 }
+#endif
 
 /**
    Process a block of memory though the hash
@@ -2202,7 +2206,9 @@ static void rtw_sha256_init(struct rtw_sha256_state *md)
    @param inlen  The length of the data (octets)
    @return CRYPT_OK if successful
 */
-static int rtw_sha256_process(struct rtw_sha256_state *md, unsigned char *in,
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
+static int sha256_process(struct sha256_state *md, unsigned char *in,
 			  unsigned long inlen)
 {
 	unsigned long n;
@@ -2213,7 +2219,7 @@ static int rtw_sha256_process(struct rtw_sha256_state *md, unsigned char *in,
 
 	while (inlen > 0) {
 		if (md->curlen == 0 && inlen >= block_size) {
-			if (rtw_sha256_compress(md, (unsigned char *) in) < 0)
+			if (sha256_compress(md, (unsigned char *) in) < 0)
 				return -1;
 			md->length += block_size * 8;
 			in += block_size;
@@ -2225,7 +2231,7 @@ static int rtw_sha256_process(struct rtw_sha256_state *md, unsigned char *in,
 			in += n;
 			inlen -= n;
 			if (md->curlen == block_size) {
-				if (rtw_sha256_compress(md, md->buf) < 0)
+				if (sha256_compress(md, md->buf) < 0)
 					return -1;
 				md->length += 8 * block_size;
 				md->curlen = 0;
@@ -2235,7 +2241,7 @@ static int rtw_sha256_process(struct rtw_sha256_state *md, unsigned char *in,
 
 	return 0;
 }
-
+#endif
 
 /**
    Terminate the hash to get the digest
@@ -2243,7 +2249,8 @@ static int rtw_sha256_process(struct rtw_sha256_state *md, unsigned char *in,
    @param out [out] The destination of the hash (32 bytes)
    @return CRYPT_OK if successful
 */
-static int rtw_sha256_done(struct rtw_sha256_state *md, unsigned char *out)
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
+static int sha256_done(struct sha256_state *md, unsigned char *out)
 {
 	int i;
 
@@ -2263,7 +2270,7 @@ static int rtw_sha256_done(struct rtw_sha256_state *md, unsigned char *out)
 	if (md->curlen > 56) {
 		while (md->curlen < 64)
 			md->buf[md->curlen++] = (unsigned char) 0;
-		rtw_sha256_compress(md, md->buf);
+		sha256_compress(md, md->buf);
 		md->curlen = 0;
 	}
 
@@ -2273,7 +2280,7 @@ static int rtw_sha256_done(struct rtw_sha256_state *md, unsigned char *out)
 
 	/* store length */
 	WPA_PUT_BE64(md->buf + 56, md->length);
-	rtw_sha256_compress(md, md->buf);
+	sha256_compress(md, md->buf);
 
 	/* copy output */
 	for (i = 0; i < 8; i++)
@@ -2281,6 +2288,7 @@ static int rtw_sha256_done(struct rtw_sha256_state *md, unsigned char *out)
 
 	return 0;
 }
+#endif
 
 /**
  * sha256_vector - SHA256 hash for data vector
@@ -2290,20 +2298,23 @@ static int rtw_sha256_done(struct rtw_sha256_state *md, unsigned char *out)
  * @mac: Buffer for the hash
  * Returns: 0 on success, -1 of failure
  */
-static int rtw_sha256_vector(size_t num_elem, u8 *addr[], size_t *len,
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
+static int sha256_vector(size_t num_elem, u8 *addr[], size_t *len,
 			 u8 *mac)
 {
-	struct rtw_sha256_state ctx;
+	struct sha256_state ctx;
 	size_t i;
 
-	rtw_sha256_init(&ctx);
+	sha256_init(&ctx);
 	for (i = 0; i < num_elem; i++)
-		if (rtw_sha256_process(&ctx, addr[i], len[i]))
+		if (sha256_process(&ctx, addr[i], len[i]))
 			return -1;
-	if (rtw_sha256_done(&ctx, mac))
+	if (sha256_done(&ctx, mac))
 		return -1;
 	return 0;
 }
+#endif
 
 static u8 os_strlen(const char *s)
 {
@@ -2344,6 +2355,7 @@ static int os_memcmp(const void *s1, const void *s2, u8 n)
  * @mac: Buffer for the hash (32 bytes)
  */
 #if defined(CONFIG_TDLS)
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
 static void hmac_sha256_vector(u8 *key, size_t key_len, size_t num_elem,
 			       u8 *addr[], size_t *len, u8 *mac)
 {
@@ -2362,7 +2374,7 @@ static void hmac_sha256_vector(u8 *key, size_t key_len, size_t num_elem,
 
 	/* if key is longer than 64 bytes reset it to key = SHA256(key) */
 	if (key_len > 64) {
-		rtw_sha256_vector(1, &key, &key_len, tk);
+		sha256_vector(1, &key, &key_len, tk);
 		key = tk;
 		key_len = 32;
 	}
@@ -2390,7 +2402,7 @@ static void hmac_sha256_vector(u8 *key, size_t key_len, size_t num_elem,
 		_addr[i + 1] = addr[i];
 		_len[i + 1] = len[i];
 	}
-	rtw_sha256_vector(1 + num_elem, _addr, _len, mac);
+	sha256_vector(1 + num_elem, _addr, _len, mac);
 
 	_rtw_memset(k_pad, 0, sizeof(k_pad));
 	_rtw_memcpy(k_pad, key, key_len);
@@ -2403,8 +2415,9 @@ static void hmac_sha256_vector(u8 *key, size_t key_len, size_t num_elem,
 	_len[0] = 64;
 	_addr[1] = mac;
 	_len[1] = 32;
-	rtw_sha256_vector(2, _addr, _len, mac);
+	sha256_vector(2, _addr, _len, mac);
 }
+#endif
 #endif /* CONFIG_TDLS */
 #endif /* PLATFORM_FREEBSD */
 /**
@@ -2422,7 +2435,8 @@ static void hmac_sha256_vector(u8 *key, size_t key_len, size_t num_elem,
  */
 #ifndef PLATFORM_FREEBSD /* Baron */
 #if defined(CONFIG_TDLS)
-static void rtw_sha256_prf(u8 *key, size_t key_len, char *label,
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
+static void sha256_prf(u8 *key, size_t key_len, char *label,
 		       u8 *data, size_t data_len, u8 *buf, size_t buf_len)
 {
 	u16 counter = 1;
@@ -2446,10 +2460,10 @@ static void rtw_sha256_prf(u8 *key, size_t key_len, char *label,
 	while (pos < buf_len) {
 		plen = buf_len - pos;
 		WPA_PUT_LE16(counter_le, counter);
-		if (plen >= RTW_SHA256_MAC_LEN) {
+		if (plen >= SHA256_MAC_LEN) {
 			hmac_sha256_vector(key, key_len, 4, addr, len,
 					   &buf[pos]);
-			pos += RTW_SHA256_MAC_LEN;
+			pos += SHA256_MAC_LEN;
 		} else {
 			hmac_sha256_vector(key, key_len, 4, addr, len, hash);
 			_rtw_memcpy(&buf[pos], hash, plen);
@@ -2458,6 +2472,7 @@ static void rtw_sha256_prf(u8 *key, size_t key_len, char *label,
 		counter++;
 	}
 }
+#endif
 #endif
 #endif /* PLATFORM_FREEBSD Baron */
 
@@ -3108,7 +3123,7 @@ void wpa_tdls_generate_tpk(_adapter *padapter, void *sta)
 		nonce[1] = SNonce;
 	}
 
-	rtw_sha256_vector(2, nonce, len, key_input);
+	sha256_vector(2, nonce, len, key_input);
 
 	/*
 	 * TPK-Key-Data = KDF-N_KEY(TPK-Key-Input, "TDLS PMK",
@@ -3127,7 +3142,7 @@ void wpa_tdls_generate_tpk(_adapter *padapter, void *sta)
 	}
 	_rtw_memcpy(data + 2 * ETH_ALEN, get_bssid(pmlmepriv), ETH_ALEN);
 
-	rtw_sha256_prf(key_input, RTW_SHA256_MAC_LEN, "TDLS PMK", data, sizeof(data), (u8 *) &psta->tpk, sizeof(psta->tpk));
+	sha256_prf(key_input, SHA256_MAC_LEN, "TDLS PMK", data, sizeof(data), (u8 *) &psta->tpk, sizeof(psta->tpk));
 
 
 }

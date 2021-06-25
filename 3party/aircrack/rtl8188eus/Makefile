@@ -10,11 +10,6 @@ EXTRA_CFLAGS += -Wno-unused
 EXTRA_CFLAGS += -Wno-vla
 EXTRA_CFLAGS += -Wno-date-time
 
-REDHAT_VER := $(shell cut -f4 -d" " /etc/redhat-release |cut -d"." -f1,2 )
-ifeq ($(REDHAT_VER), 7.9)
-EXTRA_CFLAGS += -DRHEL79
-endif
-
 GCC_VER_49 := $(shell echo `$(CC) -dumpversion | cut -f1-2 -d.` \>= 4.9 | bc )
 ifeq ($(GCC_VER_49),1)
 EXTRA_CFLAGS += -Wno-date-time	# Fix compile error && warning on gcc 4.9 and later
@@ -163,6 +158,8 @@ CONFIG_PLATFORM_PPC64LE = n
 ###############################################################
 
 CONFIG_DRVEXT_MODULE = n
+
+export TopDIR ?= $(shell pwd)
 
 ########### COMMON  #################################
 ifeq ($(CONFIG_GSPI_HCI), y)
@@ -778,16 +775,16 @@ endif
 ifeq ($(CONFIG_AUTOCFG_CP), y)
 
 ifeq ($(CONFIG_MULTIDRV), y)
-$(shell cp autoconf_multidrv_$(HCI_NAME)_linux.h include/autoconf.h)
+$(shell cp $(TopDIR)/autoconf_multidrv_$(HCI_NAME)_linux.h $(TopDIR)/include/autoconf.h)
 else
 ifeq ($(CONFIG_RTL8188E)$(CONFIG_SDIO_HCI),yy)
-$(shell cp autoconf_rtl8189e_$(HCI_NAME)_linux.h include/autoconf.h)
+$(shell cp $(TopDIR)/autoconf_rtl8189e_$(HCI_NAME)_linux.h $(TopDIR)/include/autoconf.h)
 else ifeq ($(CONFIG_RTL8188F)$(CONFIG_SDIO_HCI),yy)
-$(shell cp autoconf_rtl8189f_$(HCI_NAME)_linux.h include/autoconf.h)
+$(shell cp $(TopDIR)/autoconf_rtl8189f_$(HCI_NAME)_linux.h $(TopDIR)/include/autoconf.h)
 else ifeq ($(CONFIG_RTL8723C),y)
-$(shell cp autoconf_rtl8723c_$(HCI_NAME)_linux.h include/autoconf.h)
+$(shell cp $(TopDIR)/autoconf_rtl8723c_$(HCI_NAME)_linux.h $(TopDIR)/include/autoconf.h)
 else
-$(shell cp autoconf_$(RTL871X)_$(HCI_NAME)_linux.h include/autoconf.h)
+$(shell cp $(TopDIR)/autoconf_$(RTL871X)_$(HCI_NAME)_linux.h $(TopDIR)/include/autoconf.h)
 endif
 endif
 
