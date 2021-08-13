@@ -2,7 +2,7 @@
 # Mini script to build
 
 # Add .config
-make O=../outkernel ARCH=arm64 SUBARCH=arm64 CC=clang-11 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabihf- martini_defconfig
+make O=../outkernel ARCH=arm64 SUBARCH=arm64 CC=clang-12 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabihf- martini_defconfig
 
 # And build
-make O=../outkernel ARCH=arm64 SUBARCH=arm64 CC=clang-11 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabihf-
+make O=../outkernel ARCH=arm64 SUBARCH=arm64 CC=clang-12 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabihf-

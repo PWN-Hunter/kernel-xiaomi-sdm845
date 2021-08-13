@@ -1,3 +1,4 @@
 menu "Aircrack-ng"
 source "3party/aircrack/rtl8188eus/Kconfig"
+source "3party/aircrack/rtl8812au/Kconfig"
 endmenu
