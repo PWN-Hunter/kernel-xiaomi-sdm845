@@ -8,5 +8,6 @@ make O=out CC=clang-12 menuconfig
 
 cp arch/arm64/configs/pwn_defconfig arch/arm64/configs/pwn_defconfig.bak
 cp out/.config arch/arm64/configs/pwn_defconfig
+rm -rf out/
 
 echo done
