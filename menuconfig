@@ -1,0 +1,12 @@
+#!/bin/sh
+
+mkdir -p out
+
+# Add .config
+make O=out CC=clang-12 pwn_defconfig
+make O=out CC=clang-12 menuconfig
+
+cp arch/arm64/configs/pwn_defconfig arch/arm64/configs/pwn_defconfig.bak
+cp out/.config arch/arm64/configs/pwn_defconfig
+
+echo done
